@@ -8,7 +8,6 @@ Backend API: https://edu-agent-pipeline.onrender.com
 
 import streamlit as st
 import json
-import sys
 import os
 import httpx
 from dataclasses import dataclass
@@ -18,25 +17,26 @@ from typing import Optional
 # Configuration
 # ============================================================================
 
-# Deployed Backend API URL
+# Deployed Backend API URL (Default)
 BACKEND_API_URL = "https://edu-agent-pipeline.onrender.com"
 
-# Set to True to use deployed API, False to use local pipeline
-USE_DEPLOYED_API = os.environ.get("USE_DEPLOYED_API", "false").lower() == "true"
+# Local Backend API URL (for development)
+LOCAL_API_URL = "http://localhost:8000"
 
-# Add backend to path for local mode
-if not USE_DEPLOYED_API:
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend'))
-    from pipeline import EducationalContentPipeline
+# Set USE_LOCAL_API=true to use local server instead of deployed API
+USE_LOCAL_API = os.environ.get("USE_LOCAL_API", "false").lower() == "true"
+
+# Determine which API URL to use
+API_URL = LOCAL_API_URL if USE_LOCAL_API else BACKEND_API_URL
 
 
 # ============================================================================
-# API Client for Deployed Backend
+# API Client
 # ============================================================================
 
 @dataclass
 class PipelineResult:
-    """Result from the pipeline (matches backend response)."""
+    """Result from the pipeline API."""
     grade: int
     topic: str
     initial_content: dict
@@ -45,15 +45,16 @@ class PipelineResult:
     was_refined: bool = False
 
 
-def call_deployed_api(grade: int, topic: str) -> PipelineResult:
+def call_api(grade: int, topic: str) -> PipelineResult:
     """
-    Call the deployed backend API to generate content.
+    Call the backend API to generate educational content.
     
-    API: POST https://edu-agent-pipeline.onrender.com/generate
+    Default API: https://edu-agent-pipeline.onrender.com/generate
+    Local API (if USE_LOCAL_API=true): http://localhost:8000/generate
     """
     with httpx.Client(timeout=120.0) as client:
         response = client.post(
-            f"{BACKEND_API_URL}/generate",
+            f"{API_URL}/generate",
             json={"grade": grade, "topic": topic}
         )
         response.raise_for_status()
@@ -71,14 +72,12 @@ def call_deployed_api(grade: int, topic: str) -> PipelineResult:
 
 def run_pipeline(grade: int, topic: str) -> PipelineResult:
     """
-    Run the content generation pipeline.
-    Uses deployed API or local pipeline based on configuration.
+    Run the content generation pipeline via API call.
+    
+    Uses deployed API by default.
+    Set USE_LOCAL_API=true to use local server.
     """
-    if USE_DEPLOYED_API:
-        return call_deployed_api(grade, topic)
-    else:
-        pipeline = EducationalContentPipeline()
-        return pipeline.run(grade, topic)
+    return call_api(grade, topic)
 
 
 # ============================================================================
@@ -504,7 +503,7 @@ def display_review(review: dict):
 
 def main():
     # Header
-    st.markdown('<h1 class="main-header">📚 Educational Content Generator</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header"> Educational Content Generator</h1>', unsafe_allow_html=True)
     st.markdown('<p class="sub-header">AI-powered content creation with automatic review and interactive quizzes</p>', unsafe_allow_html=True)
     
     # Pipeline visualization
@@ -548,11 +547,8 @@ def main():
             disabled=not topic
         )
     
-    # Show which mode is being used
-    if USE_DEPLOYED_API:
-        st.caption(f"🌐 Using deployed API: `{BACKEND_API_URL}`")
-    else:
-        st.caption("💻 Using local pipeline")
+    # Show which API is being used
+    st.caption(f"🌐 API: `{API_URL}`")
     
     # Process and display results
     if generate_btn and topic:
