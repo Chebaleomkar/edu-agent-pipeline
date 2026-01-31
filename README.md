@@ -2,6 +2,11 @@
 
 An AI-powered educational content generation system with two specialized agents that work together to create high-quality learning materials.
 
+## 🚀 Live Demo
+
+You can access the live application here: **[https://edu-agent.streamlit.app/](https://edu-agent.streamlit.app/)**
+
+
 ## Overview
 
 This system uses a **Generator-Reviewer** pipeline architecture:
