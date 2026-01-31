@@ -33,15 +33,17 @@ edu-agent-pipeline/
 │   ├── __init__.py
 │   ├── config.py           # GROQ LLM configuration
 │   ├── pipeline.py         # Pipeline orchestration
-│   └── server.py           # FastAPI server
+│   ├── server.py           # FastAPI server
+│   └── requirements.txt    # Backend dependencies
 ├── frontend/
 │   └── app.py              # Streamlit UI
+├── render.yaml             # Render deployment config
 ├── .env.example
 ├── requirements.txt
 └── README.md
 ```
 
-## Quick Start
+## Quick Start (Local)
 
 ### 1. Clone & Setup
 
@@ -70,33 +72,85 @@ pip install -r requirements.txt
 Get your GROQ API key from: https://console.groq.com/keys
 
 ```bash
-# Create .env file
 cp .env.example .env
-
-# Edit .env and add your key
-GROQ_API_KEY=your_api_key_here
+# Edit .env and add: GROQ_API_KEY=your_api_key_here
 ```
 
-### 4. Run the Application
+### 4. Run Locally
 
-**Option A: Streamlit UI**
+**Streamlit UI:**
 ```bash
 streamlit run frontend/app.py
 ```
-Open http://localhost:8501
 
-**Option B: FastAPI Server**
+**FastAPI Server:**
 ```bash
 cd backend
 python server.py
 ```
-API docs at http://localhost:8000/docs
+
+---
+
+## 🚀 Deploy to Render
+
+### Option 1: One-Click Deploy
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Chebaleomkar/edu-agent-pipeline)
+
+### Option 2: Manual Deploy
+
+1. **Go to [Render Dashboard](https://dashboard.render.com)**
+
+2. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+
+3. **Configure Settings**
+   | Setting | Value |
+   |---------|-------|
+   | **Name** | `edu-agent-api` |
+   | **Region** | Oregon (US West) |
+   | **Branch** | `main` |
+   | **Root Directory** | `backend` |
+   | **Runtime** | Python 3 |
+   | **Build Command** | `pip install -r requirements.txt` |
+   | **Start Command** | `python server.py` |
+
+4. **Add Environment Variables**
+   - Click "Environment" tab
+   - Add: `GROQ_API_KEY` = `your_groq_api_key`
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Wait for deployment to complete
+
+### API Endpoints (Deployed)
+
+Once deployed, your API will be available at:
+```
+https://edu-agent-api.onrender.com
+```
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | API info |
+| GET | `/health` | Health check |
+| GET | `/docs` | Swagger documentation |
+| POST | `/generate` | Generate content |
+
+### Example API Request
+
+```bash
+curl -X POST "https://edu-agent-api.onrender.com/generate" \
+  -H "Content-Type: application/json" \
+  -d '{"grade": 4, "topic": "Types of angles"}'
+```
+
+---
 
 ## Agent Details
 
 ### Generator Agent
-
-Creates age-appropriate educational content.
 
 **Input:**
 ```json
@@ -122,12 +176,7 @@ Creates age-appropriate educational content.
 
 ### Reviewer Agent
 
-Evaluates content quality.
-
-**Criteria:**
-- Age appropriateness
-- Conceptual correctness
-- Clarity
+**Criteria:** Age appropriateness, Conceptual correctness, Clarity
 
 **Output:**
 ```json
@@ -137,28 +186,13 @@ Evaluates content quality.
 }
 ```
 
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | API info |
-| GET | `/health` | Health check |
-| POST | `/generate` | Generate content |
-
-### Example Request
-
-```bash
-curl -X POST "http://localhost:8000/generate" \
-  -H "Content-Type: application/json" \
-  -d '{"grade": 4, "topic": "Types of angles"}'
-```
-
 ## Tech Stack
 
 - **LLM**: GROQ (Llama 3.3 70B)
 - **Backend**: FastAPI
 - **Frontend**: Streamlit
 - **Validation**: Pydantic
+- **Deployment**: Render
 
 ## License
 

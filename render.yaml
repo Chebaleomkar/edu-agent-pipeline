@@ -1,0 +1,16 @@
+# Render Build Configuration
+# https://render.com/docs/deploy-fastapi
+
+services:
+  - type: web
+    name: edu-agent-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: GROQ_API_KEY
+        sync: false  # Set manually in Render dashboard
