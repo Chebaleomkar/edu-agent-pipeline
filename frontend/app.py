@@ -2,16 +2,83 @@
 Streamlit UI - Educational Content Generator
 
 A beautiful, theme-aware UI with interactive MCQ quizzes.
+
+Backend API: https://edu-agent-pipeline.onrender.com
 """
 
 import streamlit as st
 import json
 import sys
 import os
+import httpx
+from dataclasses import dataclass
+from typing import Optional
 
-# Add backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend'))
-from pipeline import EducationalContentPipeline
+# ============================================================================
+# Configuration
+# ============================================================================
+
+# Deployed Backend API URL
+BACKEND_API_URL = "https://edu-agent-pipeline.onrender.com"
+
+# Set to True to use deployed API, False to use local pipeline
+USE_DEPLOYED_API = os.environ.get("USE_DEPLOYED_API", "false").lower() == "true"
+
+# Add backend to path for local mode
+if not USE_DEPLOYED_API:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'backend'))
+    from pipeline import EducationalContentPipeline
+
+
+# ============================================================================
+# API Client for Deployed Backend
+# ============================================================================
+
+@dataclass
+class PipelineResult:
+    """Result from the pipeline (matches backend response)."""
+    grade: int
+    topic: str
+    initial_content: dict
+    review_result: dict
+    refined_content: Optional[dict] = None
+    was_refined: bool = False
+
+
+def call_deployed_api(grade: int, topic: str) -> PipelineResult:
+    """
+    Call the deployed backend API to generate content.
+    
+    API: POST https://edu-agent-pipeline.onrender.com/generate
+    """
+    with httpx.Client(timeout=120.0) as client:
+        response = client.post(
+            f"{BACKEND_API_URL}/generate",
+            json={"grade": grade, "topic": topic}
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        return PipelineResult(
+            grade=data["grade"],
+            topic=data["topic"],
+            initial_content=data["initial_content"],
+            review_result=data["review_result"],
+            refined_content=data.get("refined_content"),
+            was_refined=data["was_refined"]
+        )
+
+
+def run_pipeline(grade: int, topic: str) -> PipelineResult:
+    """
+    Run the content generation pipeline.
+    Uses deployed API or local pipeline based on configuration.
+    """
+    if USE_DEPLOYED_API:
+        return call_deployed_api(grade, topic)
+    else:
+        pipeline = EducationalContentPipeline()
+        return pipeline.run(grade, topic)
 
 
 # ============================================================================
@@ -481,19 +548,23 @@ def main():
             disabled=not topic
         )
     
+    # Show which mode is being used
+    if USE_DEPLOYED_API:
+        st.caption(f"🌐 Using deployed API: `{BACKEND_API_URL}`")
+    else:
+        st.caption("💻 Using local pipeline")
+    
     # Process and display results
     if generate_btn and topic:
         reset_quiz()
         st.session_state.result = None
         st.markdown("---")
         
-        pipeline = EducationalContentPipeline()
-        
         with st.status("🔄 Running AI Pipeline...", expanded=True) as status:
             st.write("📝 **Step 1:** Generator Agent creating content...")
             
             try:
-                result = pipeline.run(grade=grade, topic=topic)
+                result = run_pipeline(grade=grade, topic=topic)
                 st.session_state.result = result
                 
                 st.write("🔍 **Step 2:** Reviewer Agent evaluating content...")
