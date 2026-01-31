@@ -144,6 +144,41 @@ st.markdown("""
         border: 1px solid rgba(128, 128, 128, 0.2);
     }
     
+    /* ===== Mobile Level Responsiveness ===== */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 1.8rem;
+        }
+        .sub-header {
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+        }
+        .pipeline-container {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+        .step-arrow {
+            transform: rotate(90deg);
+            margin: -0.5rem 0;
+            font-size: 1.2rem;
+        }
+        .pipeline-step {
+            width: 100%;
+            justify-content: center;
+            font-size: 0.85rem;
+            padding: 0.6rem 0.8rem;
+        }
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .card {
+            padding: 1.2rem;
+        }
+    }
+
+    
     /* Light mode */
     @media (prefers-color-scheme: light) {
         .pipeline-container { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
