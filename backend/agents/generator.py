@@ -95,10 +95,11 @@ class GeneratorAgent:
 **Language Guidelines:** {language_guide}
 
 **Instructions:**
-1. Create a clear, age-appropriate explanation of the topic (2-4 paragraphs)
-2. Generate exactly 3 multiple-choice questions (MCQs)
+1. Create a clear, age-appropriate explanation of the topic (3-5 paragraphs)
+2. Generate exactly 5 multiple-choice questions (MCQs) covering different aspects of the topic
 3. Each MCQ must have exactly 4 options labeled A, B, C, D
 4. Ensure concepts are accurate and appropriate for the grade level
+5. Questions should range from basic recall to application/understanding
 
 """
         
@@ -118,17 +119,27 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no code 
     "explanation": "<detailed explanation appropriate for the grade>",
     "mcqs": [
         {
-            "question": "<question text>",
+            "question": "<question 1>",
             "options": ["A. <option>", "B. <option>", "C. <option>", "D. <option>"],
             "answer": "<A, B, C, or D>"
         },
         {
-            "question": "<question text>",
+            "question": "<question 2>",
             "options": ["A. <option>", "B. <option>", "C. <option>", "D. <option>"],
             "answer": "<A, B, C, or D>"
         },
         {
-            "question": "<question text>",
+            "question": "<question 3>",
+            "options": ["A. <option>", "B. <option>", "C. <option>", "D. <option>"],
+            "answer": "<A, B, C, or D>"
+        },
+        {
+            "question": "<question 4>",
+            "options": ["A. <option>", "B. <option>", "C. <option>", "D. <option>"],
+            "answer": "<A, B, C, or D>"
+        },
+        {
+            "question": "<question 5>",
             "options": ["A. <option>", "B. <option>", "C. <option>", "D. <option>"],
             "answer": "<A, B, C, or D>"
         }
